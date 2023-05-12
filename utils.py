@@ -1,0 +1,7 @@
+# game constants:
+
+INITIAL_BALANCE = 1000
+INITIAL_MPS = 0.2
+INITIAL_PPS = 0.1 # in per cent
+GOAL_BALANCE = 3000
+COST_INCREASE_PER_TICK = 0.1
