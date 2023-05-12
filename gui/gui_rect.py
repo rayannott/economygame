@@ -3,7 +3,7 @@ from typing import Union
 
 import pygame
 
-from .pygame_utils import FONT_HUGE, FONT_HINT, FONT_NORM, GREY, WHITE, shift
+from .pygame_utils import FONT_HUGE, FONT_HINT, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
 
 
 class Label:
@@ -25,7 +25,6 @@ class Label:
     
     def set_text(self, set_to: str) -> None:
         self.text = set_to
-
 
 
 class GUIRect(ABC):
@@ -54,11 +53,12 @@ class GUIRect(ABC):
         self.visible = True
         self.active = True
         self.hovering = False # boolean flag updated every frame
+        self.depth = 1 if parent else 0
 
         self.rect = pygame.Rect(shift(self.topleft, self.shift_by), self.size)
 
         self.text_label = Label(self.text, self.surface, self.text_font, WHITE, center=self.rect.center)
-        self.hint_label = Label(self.hoverhint, self.surface, FONT_HINT, WHITE, topleft=(0, 0))
+        self.hint_label = Label(self.hoverhint, self.surface, FONT_HINT, WHITE, bottomleft=(0, WINDOW_SIZE[1]))
     
     def set_visible(self, set_to: bool) -> None:
         self.visible = set_to
@@ -92,6 +92,7 @@ class Button(GUIRect):
     
     def draw(self) -> None:
         return super().draw()
+
 
 class ProgressBar(GUIRect):
     def __init__(self, 
@@ -133,25 +134,27 @@ class ProgressBar(GUIRect):
         pygame.draw.rect(self.surface, GREY, self.progress_rect, border_radius=3)
         return super().draw()
 
+
 class Panel(GUIRect):
     def __init__(self, topleft: tuple[float, float], size: tuple[float, float], 
                 surface: pygame.Surface, hoverhint: str = '', parent = None) -> None:
         super().__init__(topleft, size, surface, '', hoverhint, parent=parent)
         self.gui_objects: dict[str, Union[Button, ProgressBar, Panel]] = {} # interactive objects like buttons
-        self.text_objects: list[Label] = []
+        self.labels: list[Label] = []
 
     def populate_one(self, label: str, gui_object: Union[Button, ProgressBar, 'Panel']) -> None:
-        gui_object.hint_label.rect.centerx = gui_object.hint_label.rect.centerx + 100
+        gui_object.depth += self.depth
+        gui_object.hint_label.rect.centerx = gui_object.hint_label.rect.centerx + 150 * gui_object.depth
         self.gui_objects[label] = gui_object
     
     def populate_many(self, gui_objects: dict[str, Union[Button, ProgressBar, 'Panel']]) -> None:
         for k, v in gui_objects.items():
             self.populate_one(k, v)
 
-    def add_text_objects(self, text_objects: list[Label]) -> None:
+    def add_labels(self, text_objects: list[Label]) -> None:
         for to in text_objects:
             to.rect.topleft = shift(to.rect.topleft, self.rect.topleft)
-            self.text_objects.append(to)
+            self.labels.append(to)
 
     def draw(self) -> None:
         return super().draw()
@@ -159,6 +162,6 @@ class Panel(GUIRect):
     def update(self, current_mouse_pos: tuple[int, int]):
         for gui_obj in self.gui_objects.values():
             gui_obj.update(current_mouse_pos)
-        for to in self.text_objects:
+        for to in self.labels:
             to.update()
         return super().update(current_mouse_pos)
