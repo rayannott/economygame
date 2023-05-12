@@ -3,7 +3,7 @@ from typing import Union
 
 import pygame
 
-from .pygame_utils import FONT_HUGE, FONT_HINT, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
+from .pygame_utils import FONT_HUGE, FONT_SMALL, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
 
 
 class Label:
@@ -58,7 +58,7 @@ class GUIRect(ABC):
         self.rect = pygame.Rect(shift(self.topleft, self.shift_by), self.size)
 
         self.text_label = Label(self.text, self.surface, self.text_font, WHITE, center=self.rect.center)
-        self.hint_label = Label(self.hoverhint, self.surface, FONT_HINT, WHITE, bottomleft=(0, WINDOW_SIZE[1]))
+        self.hint_label = Label(self.hoverhint, self.surface, FONT_SMALL, WHITE, bottomleft=(3, WINDOW_SIZE[1] - 3))
     
     def set_visible(self, set_to: bool) -> None:
         self.visible = set_to
@@ -112,7 +112,7 @@ class ProgressBar(GUIRect):
         self.progress_rect.size = int(self.rect.width * self.progress * 0.97), int(self.rect.height * 0.85)
         self.progress_rect.center = self.rect.center
 
-        self.progress_label = Label(f'{int(self.progress*100)}', self.surface, FONT_HINT, WHITE, center=self.rect.topleft)
+        self.progress_label = Label(f'{int(self.progress*100)}', self.surface, FONT_SMALL, WHITE, center=self.rect.topleft)
     
     def set_progress(self, set_to: float) -> None:
         if set_to <= 1.009:

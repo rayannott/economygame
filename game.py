@@ -6,6 +6,7 @@ import pygame
 from player import Player
 from gui.gui_rect import Button, Label, ProgressBar, Panel
 from gui.pygame_utils import BLACK, FONT_NORM, FRAMERATE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0
+from shop_items import *
 from utils import TICK
 
 
@@ -58,6 +59,9 @@ class Game:
 
 
         self.shop_panel = Panel((306, 3), (WINDOW_SIZE[0] - 310, WINDOW_SIZE[1] - 25), self.surface, 'shop')
+
+        self.shop_item_panels = []
+
         self.shop_panel.add_labels(
             [Label('Shop', self.surface, FONT_NORM, CP0[1], topleft=(45, 3))]
         )

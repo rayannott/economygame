@@ -1,7 +1,7 @@
 import pygame
 
 from gui.gui_rect import Button, ProgressBar, Panel
-from gui.pygame_utils import BLACK, FRAMERATE, WINDOW_SIZE, FONT_HUGE, FONT_HINT, CP0
+from gui.pygame_utils import BLACK, FRAMERATE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0
 from game import Game
 
 

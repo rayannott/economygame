@@ -8,7 +8,7 @@ CP1 = ('#AE5DDA', '#89DA5D')
 
 
 pygame.font.init()
-FONT_HINT = pygame.font.Font('main_font.ttf', 14)
+FONT_SMALL = pygame.font.Font('main_font.ttf', 14)
 FONT_NORM = pygame.font.Font('main_font.ttf', 20)
 FONT_HUGE = pygame.font.Font('main_font.ttf', 34)
 

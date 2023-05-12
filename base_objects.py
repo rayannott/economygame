@@ -4,12 +4,13 @@ from enum import Enum
 
 from utils import COST_INCREASE_PER_TICK
 
-class PGType(Enum):
+class ShopItemType(Enum):
     '''
     Enumerator object for profit generator types
     '''
     AMULET = 'amulet'
     BUSINESS = 'business'
+    EFFECT = 'effect'
 
 
 @dataclass
@@ -19,35 +20,36 @@ class Cost:
 
 
 class ShopItem(ABC):
-    def __init__(self, name: str, cost: Cost) -> None:
+    def __init__(self, name: str, cost: Cost, type_: ShopItemType) -> None:
         super().__init__()
         self.name = name
         self.cost = cost
+        self.in_shop = True # cost increaing
+        self.info = []
     
     def tick(self):
         pass
 
 
 class ProfitGen(ShopItem):
-    def __init__(self, name: str, cost: Cost, pgtype: PGType, mps: float = 0, pmps: float = 0) -> None:
+    def __init__(self, name: str, cost: Cost, type_: ShopItemType, mpt: float = 0, ppt: float = 0) -> None:
         '''
         Base abstract class for all profit generating items like amulets and businesses
-        pgtype: type -- either AMULET or BUSINESS
-        mps: money per second bonus
-        pps: per-mille per second bonus
+        type_: type -- either AMULET or BUSINESS
+        mps: money per tick bonus
+        pps: per cent per tick bonus
         '''
-        super().__init__(name, cost)
-        self.pgtype = pgtype
-        self.mps = mps
-        self.pmps = pmps
+        super().__init__(name, cost, type_)
+        self.mpt = mpt
+        self.ppt = ppt
     
     def tick(self):
         pass
 
 
 class Effect(ShopItem):
-    def __init__(self, name: str, cost: Cost, duration: float) -> None:
-        super().__init__(name, cost)
+    def __init__(self, name: str, cost: Cost, type_: ShopItemType, duration: float) -> None:
+        super().__init__(name, cost, type_)
         self.duration = duration
         self.is_active = True
     
@@ -64,6 +66,9 @@ class ShopCell(ABC):
         super().__init__()
         self.what = what
     
+    def tick(self):
+        self.what.cost.money += COST_INCREASE_PER_TICK
+    
 
 @dataclass
 class Shop:
@@ -71,4 +76,4 @@ class Shop:
 
     def tick(self):
         for item in self.items:
-            item.what.cost.money += COST_INCREASE_PER_TICK
+            item.tick()
