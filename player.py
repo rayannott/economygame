@@ -2,9 +2,9 @@ from collections import defaultdict, deque
 from copy import deepcopy
 from dataclasses import dataclass
 import math
+
 from base_objects import Cost, Effect, ShopCell, ShopItem, ShopItemType
 from shop_items import Bakery, SouvenirShop, BoostPpt
-
 from utils import INITIAL_BALANCE, INITIAL_MPT, INITIAL_PPT, GOAL_BALANCE, AVAILABLE_EFFECTS_SLOTS
 
 @dataclass

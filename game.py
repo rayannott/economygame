@@ -1,10 +1,9 @@
-
-
 from collections import Counter
 import time
-import pygame
-from base_objects import Cost, ShopCell, ShopItemType
 
+import pygame
+
+from base_objects import Cost, ShopCell, ShopItemType
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
 from gui.pygame_utils import BLACK, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE
@@ -105,7 +104,7 @@ class Game:
         self.info_panel.labels[4].set_text(f'{winning_by:.0f}')
         self.info_panel.labels[4].set_color(GREEN if winning_by >= 0 else RED)
         self.info_panel.labels[5].set_text(f'mpt: {self.player.mpt:.3f}')
-        self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.3f}')
+        self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.3f}{" x3" if self.player.effect_flags.double_ppt else ""}')
 
         self.info_panel.update(current_mouse_pos)
 
@@ -210,7 +209,6 @@ class Game:
                             print('inv spending history:', self.player.spent_on_each_shop_item)
                             print('effect flags:', self.player.effect_flags)
                             print('effect duration boost:', self.player.effect_duration_boost)
-                            self.spawn_notification('debug', pos)
 
                     elif self.shop_panel.clicked():
                         what_clicked = self.shop_panel.object_clicked()

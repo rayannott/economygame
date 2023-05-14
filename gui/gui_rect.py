@@ -4,7 +4,6 @@ from typing import Union
 import pygame
 
 from gui.pygame_utils import FONT_NORM
-
 from .pygame_utils import BLACK, CP0, FONT_HUGE, FONT_SMALL, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
 
 

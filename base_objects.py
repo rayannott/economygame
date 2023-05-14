@@ -5,6 +5,7 @@ from copy import copy
 
 from utils import COST_INCREASE_PER_TICK
 
+
 class ShopItemType(Enum):
     '''
     Enumerator object for profit generator types

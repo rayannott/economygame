@@ -1,5 +1,3 @@
-from typing import Type
-
 import pygame
 
 from base_objects import ProfitGen, ShopCell, ShopItem, Shop
