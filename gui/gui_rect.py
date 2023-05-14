@@ -27,6 +27,9 @@ class Label:
     
     def set_text(self, set_to: str) -> None:
         self.text = set_to
+    
+    def set_color(self, set_to):
+        self.color = set_to
 
 
 class GUIRect(ABC):
@@ -91,6 +94,9 @@ class GUIRect(ABC):
 
     def set_text(self, set_to: str) -> None:
         self.text_label.set_text(set_to)
+
+    def set_frame_color(self, set_to: str):
+        self.color_frame = set_to
 
 
 class Button(GUIRect):

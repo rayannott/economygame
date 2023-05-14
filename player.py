@@ -14,13 +14,20 @@ class Player:
         self.effect_duration_boost = 0
         self.inventory: list[ShopItem] = []
         self.spent_on_each_shop_item: dict[str, deque[float]] = defaultdict(deque)
+        self.INITIAL_TIME_UNTIL_VICTORY = self.time_until_victory()
+        self.do_nothing_balance = INITIAL_BALANCE
 
     def tick(self):
         self.balance *= 1+self.ppt*0.01
         self.balance += self.mpt
+        self.do_nothing_balance *= 1+INITIAL_PPT*0.01
+        self.do_nothing_balance += INITIAL_MPT
 
     def time_until_victory(self) -> float:
         return math.log((GOAL_BALANCE + 100*self.mpt/(self.ppt))/(self.balance + 100*self.mpt/(self.ppt)), 1+self.ppt*0.01)
+
+    def do_nothing_time_until_victory(self) -> float:
+        return math.log((GOAL_BALANCE + 100*INITIAL_MPT/(INITIAL_PPT))/(self.do_nothing_balance + 100*INITIAL_MPT/(INITIAL_PPT)), 1+INITIAL_PPT*0.01)
 
     def enough_money(self, cost: Cost) -> tuple[bool, float]:
         '''

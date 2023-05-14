@@ -3,6 +3,8 @@ import pygame
 WHITE = '#FFFFFF'
 BLACK = '#000000'
 GREY = '#333333'
+GREEN = '#00FF00'
+RED = '#FF0000'
 CP0 = ('#DB5294', '#52DB9A') # cool color pair number 0
 CP1 = ('#AE5DDA', '#89DA5D')
 
