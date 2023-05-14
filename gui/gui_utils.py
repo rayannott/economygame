@@ -1,3 +1,5 @@
+import random
+
 import pygame
 
 WHITE = '#FFFFFF'
@@ -24,7 +26,10 @@ FRAMERATE = 60
 SHOP_ITEM_PANEL_SIZE = (217, 188)
 BUY_BTN_SIZE = (100, 40)
 
-INV_BTN_SLOT_SIZE = (260, 40)
+INV_BTN_SLOT_SIZE = (280, 40)
 
 def shift(tup1: tuple, tup2: tuple) -> tuple:
     return tup1[0] + tup2[0], tup1[1] + tup2[1]
+
+def random_point():
+    return random.randint(0, WINDOW_SIZE[0]), random.randint(0, WINDOW_SIZE[1])

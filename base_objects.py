@@ -21,8 +21,7 @@ class Cost:
     balance_portion: float = 0.0
 
     def __str__(self) -> str:
-        portion_string = f' + {int(100*self.balance_portion)}%' if self.balance_portion else ''
-        return f'{int(self.money)}{portion_string}'
+        return f'{int(self.money)} + {self.balance_portion:.0%}'
 
 
 class ShopItem(ABC):
@@ -32,6 +31,8 @@ class ShopItem(ABC):
         self.cost = cost
         self.type_ = type_
         self.cost_increase_mult = 1
+        self.per_purchase_portion_increase = 0.01 # increase of the Cost.balance_portion after every purchase, percent
+        self.per_purchase_cost_mult = 1.05 # increase of the Cost.money after every purchase, multiple
         self.info: list[str] = []
     
     def tick(self):

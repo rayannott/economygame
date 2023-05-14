@@ -6,11 +6,11 @@ import pygame
 from base_objects import Cost, ShopCell, ShopItemType
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
-from gui.pygame_utils import BLACK, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE
+from gui.gui_utils import BLACK, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE, random_point
 from gui.gui_shop import create_panels_from_shop
 import shop_items as si
 from shop_items import create_shop
-from utils import TICK
+from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, TICK
 
 
 class Game:
@@ -52,8 +52,8 @@ class Game:
                 Label(f'balance: {self.player.balance:.1f}', self.surface, FONT_NORM, WHITE, topleft=(6, 53)),
                 Label(f'[until victory: {tuv:.0f} tx]', self.surface, FONT_SMALL, WHITE, topleft=(15, 78)),
                 Label(f'{self.player.do_nothing_time_until_victory() - tuv:.0f}', self.surface, FONT_SMALL, WHITE, topleft=(220, 78)),
-                Label(f'mpt: {self.player.mpt:.3f}', self.surface, FONT_NORM, WHITE, topleft=(6, 103)),
-                Label(f'ppt: {self.player.ppt:.3f}', self.surface, FONT_NORM, WHITE, topleft=(6, 128)),
+                Label(f'mpt: {self.player.mpt:.2f}', self.surface, FONT_NORM, WHITE, topleft=(6, 103)),
+                Label(f'ppt: {self.player.ppt:.2f}', self.surface, FONT_NORM, WHITE, topleft=(6, 128)),
             ]
         )
         self.info_panel.populate_one(
@@ -93,6 +93,10 @@ class Game:
             self.time_of_last_tick = self.current_time   
         
         self.player.update()
+        if self.player.balance >= GOAL_BALANCE and not self.victory:
+            self.victory = True
+            self.spawn_notification(f'You won @ \n {self.times_ticked} tx ---', (WINDOW_SIZE[0]//2, WINDOW_SIZE[1]//2))
+            
     
     def update_gui(self, current_mouse_pos: tuple[int, int]):
         # info panel:
@@ -103,8 +107,9 @@ class Game:
         winning_by = self.player.do_nothing_time_until_victory() - tuv
         self.info_panel.labels[4].set_text(f'{winning_by:.0f}')
         self.info_panel.labels[4].set_color(GREEN if winning_by >= 0 else RED)
-        self.info_panel.labels[5].set_text(f'mpt: {self.player.mpt:.3f}')
-        self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.3f}{" x3" if self.player.effect_flags.double_ppt else ""}')
+        under_effects = any(self.player.effects)
+        self.info_panel.labels[5].set_text(f'mpt: {self.player.mpt:.2f} (real {self.player.real_mpt:.2f})')
+        self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.2f} (real {self.player.real_ppt:.2f})')
 
         self.info_panel.update(current_mouse_pos)
 
@@ -127,7 +132,7 @@ class Game:
                         size=INV_BTN_SLOT_SIZE, 
                         surface=self.surface, 
                         text=f'{inv_item.name} x ({len(self.player.spent_on_each_shop_item[inv_item.name])})',
-                        hoverhint=f'sell {inv_item.name} for {self.player.spent_on_each_shop_item[inv_item.name][0]*0.5:.1f}',
+                        hoverhint=f'sell {inv_item.name} for {self.player.spent_on_each_shop_item[inv_item.name][0]:.1f}',
                         parent=self.inventory_panel
                     )
                 )
@@ -169,8 +174,8 @@ class Game:
         for notif in self.notifications:
             notif.update(current_mouse_pos)
 
-    def spawn_notification(self, text: str, mouse_pos: tuple[int, int], duration: int = 6):
-        self.notifications.append(Notification(text, self.surface, current_mouse_pos=mouse_pos))
+    def spawn_notification(self, text: str, pos: tuple[int, int], duration: int = 6):
+        self.notifications.append(Notification(text, self.surface, pos=pos))
     
     def buy_shop_cell(self, shop_cell: ShopCell) -> tuple[bool, str]:
         '''Buys an item; returns True if success, else False'''
@@ -204,11 +209,12 @@ class Game:
                             self.paused = not self.paused
                         elif self.info_panel.gui_objects['debug_btn'].clicked():
                             # DEBUG
-                            print('inv:', self.player.inventory)
-                            print('effects:', self.player.effects)
-                            print('inv spending history:', self.player.spent_on_each_shop_item)
-                            print('effect flags:', self.player.effect_flags)
-                            print('effect duration boost:', self.player.effect_duration_boost)
+                            print('DEB - inv:', self.player.inventory)
+                            print('DEB - effects:', self.player.effects)
+                            print('DEB - inv spending history:', self.player.spent_on_each_shop_item)
+                            print('DEB - effect flags:', self.player.effect_flags)
+                            print('DEB - real mpt, ppt:', self.player.real_mpt, self.player.real_ppt)
+                            print('DEB - effect duration boost:', self.player.effect_duration_boost)
 
                     elif self.shop_panel.clicked():
                         what_clicked = self.shop_panel.object_clicked()
@@ -230,7 +236,7 @@ class Game:
                                 print(f'sold {what_clicked}')
                             else:
                                 print(f'you don\'t have {what_clicked}')
-                                self.spawn_notification(f'you have 0 of\n{what_clicked}', pos, 3)
+                                self.spawn_notification(f'no {what_clicked} left', pos, 3)
             pygame.display.update()
 
     def tick(self):
@@ -240,5 +246,8 @@ class Game:
         self.times_ticked += 1
         self.player.tick()
         self.shop.tick()
+        if self.times_ticked % BONUS_EVERY == 0:
+            self.player.set_balance(self.player.balance + BONUS_AMOUNT)
+            self.spawn_notification(f'you received a bonus: {BONUS_AMOUNT}', random_point())
         for notif in self.notifications:
             notif.tick()

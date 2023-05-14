@@ -1,7 +1,7 @@
 import pygame
 
 from base_objects import ProfitGen, ShopCell, ShopItem, Shop
-from gui.pygame_utils import CP1, FONT_SMALL, FONT_NORM, WHITE, SHOP_ITEM_PANEL_SIZE, BUY_BTN_SIZE
+from gui.gui_utils import CP1, FONT_SMALL, FONT_NORM, WHITE, SHOP_ITEM_PANEL_SIZE, BUY_BTN_SIZE
 from gui.gui_rect import Panel, Label, Button
 
 
