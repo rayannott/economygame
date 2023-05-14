@@ -28,13 +28,19 @@ class GoldenNugget(ProfitGen):
 
 class Bakery(ProfitGen):
     def __init__(self) -> None:
-        super().__init__(name='Bakery', cost=Cost(340., 0.05), type_=ShopItemType.BUSINESS, mpt=0.4, ppt=0)
+        super().__init__(name='Bakery', cost=Cost(340., 0.05), type_=ShopItemType.BUSINESS, mpt=0.4, ppt=0.)
         self.info = [f'+{self.mpt} mpt', f'+{PER_BAKERY_EFFECT_BOOST} tx effects duration']
 
 
 class SouvenirShop(ProfitGen):
     def __init__(self) -> None:
-        super().__init__(name='Souvenir Shop', cost=Cost(140., 0.2), type_=ShopItemType.BUSINESS, mpt=0.15, ppt=0)
+        super().__init__(name='Souvenir Shop', cost=Cost(400., 0.01), type_=ShopItemType.BUSINESS, mpt=0., ppt=0.)
+        self.info = [f'+{self.ppt} ppt']
+
+
+class JewelleryStore(ProfitGen):
+    def __init__(self) -> None:
+        super().__init__(name='Jewellery Store', cost=Cost(140., 0.2), type_=ShopItemType.BUSINESS, mpt=0.15, ppt=0.)
         self.info = [f'+{self.mpt} x (# amulets) mpt']
         self.per_purchase_cost_mult = 1.1
         self.per_purchase_portion_increase = 0.02
@@ -65,6 +71,13 @@ class EvilWizardry(Effect):
         super().__init__(name='Evil Wizardry', cost=Cost(120., 0.2), type_=ShopItemType.EFFECT, duration=15)
         self.info = ['2.5 x (mpt), 2.5 x (ppt)', 'of all amulets', f'for {self.duration} sec']
 
+    
+class AllIn(Effect):
+    def __init__(self) -> None:
+        super().__init__(name='All In', cost=Cost(5., 0.85), type_=ShopItemType.EFFECT, duration=10)
+        self.info = ['40 x (ppt)', f'for {self.duration} sec', '(cost inc 0x)']
+        self.cost_increase_mult = 0
+
 
 def create_shop() -> Shop:
     return Shop(
@@ -73,10 +86,12 @@ def create_shop() -> Shop:
             ShopCell(CopperNugget()),
             ShopCell(GoldenNugget()),
             ShopCell(Bakery()),
+            ShopCell(JewelleryStore()),
             ShopCell(SouvenirShop()),
             ShopCell(BoostPpt()),
             ShopCell(BoostMpt()),
             ShopCell(MegaStocks()),
-            ShopCell(EvilWizardry())
+            ShopCell(EvilWizardry()),
+            ShopCell(AllIn())
         ]
     )

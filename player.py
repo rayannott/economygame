@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import math
 
 from base_objects import Cost, Effect, ShopCell, ShopItem, ShopItemType
-from shop_items import Bakery, SouvenirShop, BoostPpt
+from shop_items import Bakery, JewelleryStore, SouvenirShop, BoostPpt
 from utils import INITIAL_BALANCE, INITIAL_MPT, INITIAL_PPT, GOAL_BALANCE, AVAILABLE_EFFECTS_SLOTS, BONUS_AMOUNT, BONUS_EVERY, PER_BAKERY_EFFECT_BOOST
 
 @dataclass
@@ -13,6 +13,7 @@ class EffectFlags:
     boost_mpt: bool = False
     mega_stocks: bool = False
     evilwizardry: bool = False
+    allin: bool = False
 
 class Player:
     def __init__(self) -> None:
@@ -46,16 +47,19 @@ class Player:
                 self.effect_flags.mega_stocks = True
             elif eff.name == 'Evil Wizardry':
                 self.effect_flags.evilwizardry = True
+            elif eff.name == 'All In':
+                self.effect_flags.allin = True
 
         # update balance:
         stocks_mult = 2.5 if self.effect_flags.mega_stocks else 1
         evilwizardry = 2.5 if self.effect_flags.evilwizardry else 1
         boost_ppt_mult = 3 if self.effect_flags.boost_ppt else 1
+        boost_ppt_mult = 40 if self.effect_flags.allin else 1
         boost_mpt_mult = 3 if self.effect_flags.boost_mpt else 1
         
         self.real_ppt = (INITIAL_PPT + self.extra_ppt[0] * evilwizardry + self.extra_ppt[1] * stocks_mult) * boost_ppt_mult
         self.real_mpt = (INITIAL_MPT + self.extra_mpt[0] * evilwizardry + self.extra_mpt[1] * stocks_mult) * boost_mpt_mult
-        self.balance *= 1 + self.real_mpt * 0.01
+        self.balance *= 1 + self.real_ppt * 0.01
         self.balance += self.real_mpt
 
         # update fake balance to keep track of how well we're doing
@@ -115,7 +119,7 @@ class Player:
             self.set_balance(resulting_balance)
             shop_cell.item_cost = Cost(
                 money=shop_cell.item_cost.money * shop_cell.what.per_purchase_cost_mult, 
-                balance_portion=min(shop_cell.item_cost.balance_portion + shop_cell.what.per_purchase_portion_increase, 0.5)
+                balance_portion=min(shop_cell.item_cost.balance_portion + shop_cell.what.per_purchase_portion_increase, 0.9)
             )
             return True, ''
         return False, 'not enough money'
@@ -160,7 +164,7 @@ class Player:
                 self.extra_ppt[0] += inv_item.ppt # type: ignore
                 pass
             elif inv_item.type_ == ShopItemType.BUSINESS:
-                if isinstance(inv_item, SouvenirShop):
+                if isinstance(inv_item, JewelleryStore):
                     self.extra_mpt[1] += inv_item.mpt * amulets
                     continue
                 elif isinstance(inv_item, Bakery):

@@ -88,7 +88,9 @@ class ShopCell(ABC):
         self.item_cost = copy(what.cost)
     
     def tick(self):
-        self.item_cost.money += COST_INCREASE_PER_TICK * self.what.cost_increase_mult
+        new_val = self.item_cost.money + COST_INCREASE_PER_TICK * self.what.cost_increase_mult
+        if new_val >= 30:
+            self.item_cost.money = new_val
     
     def __str__(self) -> str:
         return f'ShopCell({self.what} for {self.item_cost})'
