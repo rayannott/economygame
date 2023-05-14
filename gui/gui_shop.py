@@ -20,7 +20,8 @@ def create_panels_from_shop(shop: Shop, surface: pygame.Surface, shop_panel: Pan
     for i, sh_item in enumerate(shop.items.values()):
         pnl = Panel(topleft=TOPLEFTS[i], size=SHOP_ITEM_PANEL_SIZE, surface=surface, hoverhint=sh_item.what.name, parent=shop_panel)
         pnl.add_labels(
-            [Label(f'[{sh_item.what.name}]', surface, FONT_NORM, CP1[0], topleft=(2, 2))]
+            [Label(f'[{sh_item.what.name}]', surface, FONT_NORM, CP1[0], topleft=(2, 2)),
+             Label(f'{sh_item.what.type_.name[0]}', surface, FONT_NORM, color=CP1[1], bottomleft=(2, SHOP_ITEM_PANEL_SIZE[1]-2))]
         )
         for i, info in enumerate(sh_item.what.info, 1):
             pnl.add_labels(

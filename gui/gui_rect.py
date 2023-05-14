@@ -3,7 +3,9 @@ from typing import Union
 
 import pygame
 
-from .pygame_utils import FONT_HUGE, FONT_SMALL, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
+from gui.pygame_utils import FONT_NORM
+
+from .pygame_utils import BLACK, CP0, FONT_HUGE, FONT_SMALL, FONT_NORM, GREY, WHITE, WINDOW_SIZE, shift
 
 
 class Label:
@@ -55,11 +57,14 @@ class GUIRect(ABC):
         self.hovering = False # boolean flag updated every frame
         self.clickable = False
         self.depth = 1 if parent else 0
+        self.color_text = WHITE
+        self.color_hint = WHITE
+        self.color_frame = WHITE
 
         self.rect = pygame.Rect(shift(self.topleft, self.shift_by), self.size)
 
-        self.text_label = Label(self.text, self.surface, self.text_font, WHITE, center=self.rect.center)
-        self.hint_label = Label(self.hoverhint, self.surface, FONT_SMALL, WHITE, bottomleft=(3, WINDOW_SIZE[1] - 3))
+        self.text_label = Label(self.text, self.surface, self.text_font, self.color_text, center=self.rect.center)
+        self.hint_label = Label(self.hoverhint, self.surface, FONT_SMALL, self.color_hint, bottomleft=(3, WINDOW_SIZE[1] - 3))
     
     def set_visible(self, set_to: bool) -> None:
         self.visible = set_to
@@ -68,7 +73,7 @@ class GUIRect(ABC):
         self.active = set_to
 
     def clicked(self) -> bool:
-        return self.hovering
+        return self.active and self.hovering
 
     @abstractmethod
     def update(self, current_mouse_pos: tuple[int, int]):
@@ -76,11 +81,13 @@ class GUIRect(ABC):
         if self.hoverhint and self.hovering:
             self.hint_label.update()
         self.draw()
-        self.text_label.update()
+        if self.visible:
+            self.text_label.update()
 
     @abstractmethod
     def draw(self) -> None:
-        pygame.draw.rect(self.surface, WHITE, self.rect, width=2 if self.hovering else 1, border_radius=3)
+        if self.visible:
+            pygame.draw.rect(self.surface, self.color_frame, self.rect, width=2 if self.hovering else 1, border_radius=3)
 
     def set_text(self, set_to: str) -> None:
         self.text_label.set_text(set_to)
@@ -136,7 +143,8 @@ class ProgressBar(GUIRect):
         return super().update(current_mouse_pos)
     
     def draw(self) -> None:
-        pygame.draw.rect(self.surface, GREY, self.progress_rect, border_radius=3)
+        if self.visible:
+            pygame.draw.rect(self.surface, GREY, self.progress_rect, border_radius=3)
         return super().draw()
 
 
@@ -167,8 +175,9 @@ class Panel(GUIRect):
     def update(self, current_mouse_pos: tuple[int, int]):
         for gui_obj in self.gui_objects.values():
             gui_obj.update(current_mouse_pos)
-        for to in self.labels:
-            to.update()
+        if self.visible:
+            for to in self.labels:
+                to.update()
         return super().update(current_mouse_pos)
 
     def object_clicked(self) -> str:
@@ -177,3 +186,37 @@ class Panel(GUIRect):
             if gui_obj.clicked():
                 return obj_key
         return ''
+
+
+class Notification(Panel):
+    def __init__(self, text: str, surface: pygame.Surface, current_mouse_pos: tuple[int, int], duration_tics=6) -> None:
+        self.lines = text.split('\n')
+        max_len = len(max(self.lines, key=len))
+        super().__init__(topleft=current_mouse_pos, size=(15 * max_len, 30 * len(self.lines)), surface=surface, hoverhint='', parent=None)
+        self.duration_ticks = duration_tics
+        self.color_frame = CP0[1]
+        self.inner_rect = pygame.rect.Rect(shift(self.rect.topleft, (4, 4)), shift(self.rect.size, (-8, -8)))
+        for i, one_line in enumerate(self.lines):
+            self.add_labels(
+                [
+                    Label(one_line, self.surface, FONT_SMALL, BLACK, topleft=(5, 5 + 30*i))
+                ]
+            )
+
+    def tick(self):
+        if self.active:
+            self.duration_ticks -= 1
+            if self.duration_ticks <= 0:
+                self.active = False
+                self.visible = False
+    
+    def draw(self) -> None:
+        super().draw()
+        if self.visible:
+            pygame.draw.rect(self.surface, WHITE, self.inner_rect, border_radius=3)
+    
+    def update(self, current_mouse_pos: tuple[int, int]):
+        self.draw()
+        if self.visible:
+            for to in self.labels:
+                to.update()

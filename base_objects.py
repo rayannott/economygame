@@ -29,12 +29,20 @@ class ShopItem(ABC):
         super().__init__()
         self.name = name
         self.cost = cost
-        self.in_shop = True # cost increaing
         self.type_ = type_
         self.info: list[str] = []
     
     def tick(self):
         pass
+
+    def __eq__(self, other: 'ProfitGen') -> bool:
+            return self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+    
+    def __repr__(self) -> str:
+        return f'ShopItem::{self.name}'
 
 
 class ProfitGen(ShopItem):
