@@ -2,35 +2,36 @@ from typing import Type
 
 import pygame
 
-from base_objects import ProfitGen, ShopCell, ShopItem
-from gui.pygame_utils import CP1, FONT_SMALL, WHITE
+from base_objects import ProfitGen, ShopCell, ShopItem, Shop
+from gui.pygame_utils import CP1, FONT_SMALL, FONT_NORM, WHITE, SHOP_ITEM_PANEL_SIZE, BUY_BTN_SIZE
 from gui.gui_rect import Panel, Label, Button
 
-# class ShopItemPanel(Panel):
-#     def __init__(self, topleft: tuple[float, float], 
-#                 size: tuple[float, float], surface: pygame.Surface,
-#                 shop_panel: Panel,
-#                 shop_item: ShopItem,
-#                 requires_clarification: bool = False,
-#                 hoverhint: str = '',
-#                 ) -> None:
-#         super().__init__(topleft, size, surface, hoverhint, shop_panel)
-#         self.requires_clarification = requires_clarification
-#         self.shop_item = shop_item
 
-# def create_shop_item_panel(shop_item: ShopItem, info: str, hoverhint: str,
-#                       req_clarification: bool,
-#                       topleft: tuple[int, int], surface, shop_panel):
-#     pnl = ShopItemPanel(topleft, (300, 280), surface, shop_panel, shop_item, req_clarification, hoverhint)
-#     pnl.add_labels([
-#         Label(shop_item.name, surface, FONT_SMALL, CP1[0], topleft=(4, 4)),
-#         Label(info, surface, FONT_SMALL, WHITE, topleft=(4, 24)),
-#         Label(f'cost: {shop_item.cost}', surface, FONT_SMALL, WHITE, topleft=(4, 200))
-#         ]
-#     )
-#     pnl.populate_one(
-#         'buy',
-#         Button((40, 230), (120, 40), surface, 'BUY', f'buy {shop_item.name}', FONT_SMALL, pnl)
-#     )
-#     return pnl
+TOPLEFTS = []
+for i in range(4):
+    for j in range(4):
+        TOPLEFTS.append(
+            (4*(j+1) + SHOP_ITEM_PANEL_SIZE[0]*j, 30 + 4*i + SHOP_ITEM_PANEL_SIZE[1]*i)
+        )
 
+
+def create_panels_from_shop(shop: Shop, surface: pygame.Surface, shop_panel: Panel) -> dict[str, Panel]:
+    to_ret = {}
+    for i, sh_item in enumerate(shop.items.values()):
+        pnl = Panel(topleft=TOPLEFTS[i], size=SHOP_ITEM_PANEL_SIZE, surface=surface, hoverhint=sh_item.what.name, parent=shop_panel)
+        pnl.add_labels(
+            [Label(f'[{sh_item.what.name}]', surface, FONT_NORM, CP1[0], topleft=(2, 2))]
+        )
+        for i, info in enumerate(sh_item.what.info, 1):
+            pnl.add_labels(
+                [Label(info, surface, FONT_SMALL, WHITE, topleft=(15, 30*i))]
+            )
+        pnl.populate_one(
+            'buy',
+            Button(
+                (SHOP_ITEM_PANEL_SIZE[0] - BUY_BTN_SIZE[0] - 4, SHOP_ITEM_PANEL_SIZE[1] - BUY_BTN_SIZE[1] - 4), 
+                BUY_BTN_SIZE, surface, str(sh_item.item_cost), f'buy {sh_item.what.name}', text_font=FONT_SMALL, parent=pnl
+            )
+        )
+        to_ret[sh_item.what.name] = pnl
+    return to_ret

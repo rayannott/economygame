@@ -15,5 +15,10 @@ FONT_HUGE = pygame.font.Font('main_font.ttf', 34)
 WINDOW_SIZE = (1200, 800)
 FRAMERATE = 60
 
+
+SHOP_ITEM_PANEL_SIZE = (217, 188)
+BUY_BTN_SIZE = (100, 40)
+
+
 def shift(tup1: tuple, tup2: tuple) -> tuple:
     return tup1[0] + tup2[0], tup1[1] + tup2[1]

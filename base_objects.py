@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from copy import copy
 
 from utils import COST_INCREASE_PER_TICK
 
@@ -18,6 +19,10 @@ class Cost:
     money: float
     balance_portion: float = 0.0
 
+    def __str__(self) -> str:
+        portion_string = f' + {int(100*self.balance_portion)}%' if self.balance_portion else ''
+        return f'{int(self.money)}{portion_string}'
+
 
 class ShopItem(ABC):
     def __init__(self, name: str, cost: Cost, type_: ShopItemType) -> None:
@@ -25,7 +30,8 @@ class ShopItem(ABC):
         self.name = name
         self.cost = cost
         self.in_shop = True # cost increaing
-        self.info = []
+        self.type_ = type_
+        self.info: list[str] = []
     
     def tick(self):
         pass
@@ -65,15 +71,24 @@ class ShopCell(ABC):
     def __init__(self, what: ShopItem) -> None:
         super().__init__()
         self.what = what
+        self.item_cost = copy(what.cost)
     
     def tick(self):
-        self.what.cost.money += COST_INCREASE_PER_TICK
+        self.item_cost.money += COST_INCREASE_PER_TICK
+    
+    def __str__(self) -> str:
+        return f'ShopCell({self.what} for {self.item_cost})'
     
 
-@dataclass
 class Shop:
-    items: list[ShopCell]
+    def __init__(self, items_to_add: list[ShopCell]) -> None:
+        self.items: dict[str, ShopCell] = {}
+        for item_to_add in items_to_add:
+            self.items[item_to_add.what.name] = item_to_add
 
     def tick(self):
-        for item in self.items:
+        for item in self.items.values():
             item.tick()
+    
+    def __getitem__(self, key):
+        return self.items[key]

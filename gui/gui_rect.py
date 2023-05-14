@@ -53,6 +53,7 @@ class GUIRect(ABC):
         self.visible = True
         self.active = True
         self.hovering = False # boolean flag updated every frame
+        self.clickable = False
         self.depth = 1 if parent else 0
 
         self.rect = pygame.Rect(shift(self.topleft, self.shift_by), self.size)
@@ -81,11 +82,15 @@ class GUIRect(ABC):
     def draw(self) -> None:
         pygame.draw.rect(self.surface, WHITE, self.rect, width=2 if self.hovering else 1, border_radius=3)
 
+    def set_text(self, set_to: str) -> None:
+        self.text_label.set_text(set_to)
+
 
 class Button(GUIRect):
     def __init__(self, topleft: tuple[float, float], size: tuple[float, float], surface: pygame.Surface, 
                  text: str = '', hoverhint: str = '', text_font = FONT_NORM, parent = None) -> None:
         super().__init__(topleft, size, surface, text, hoverhint, text_font, parent)
+        self.clickable = True
     
     def update(self, current_mouse_pos: tuple[int, int]):
         return super().update(current_mouse_pos)
@@ -165,3 +170,10 @@ class Panel(GUIRect):
         for to in self.labels:
             to.update()
         return super().update(current_mouse_pos)
+
+    def object_clicked(self) -> str:
+        '''Returns a key of the clicked object'''
+        for obj_key, gui_obj in self.gui_objects.items():
+            if gui_obj.clicked():
+                return obj_key
+        return ''
