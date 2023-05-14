@@ -30,13 +30,14 @@ class ShopItem(ABC):
         self.name = name
         self.cost = cost
         self.type_ = type_
+        self.cost_increase_mult = 1
         self.info: list[str] = []
     
     def tick(self):
         pass
 
     def __eq__(self, other: 'ProfitGen') -> bool:
-            return self.name == other.name
+        return self.name == other.name
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -64,6 +65,7 @@ class ProfitGen(ShopItem):
 class Effect(ShopItem):
     def __init__(self, name: str, cost: Cost, type_: ShopItemType, duration: float) -> None:
         super().__init__(name, cost, type_)
+        self.DURATION = duration # constant
         self.duration = duration
         self.is_active = True
     
@@ -73,6 +75,8 @@ class Effect(ShopItem):
             if self.duration == 0:
                 self.is_active = False
 
+    def __repr__(self) -> str:
+        return f'Effect::{self.name}({self.duration} tx left)'
 
 
 class ShopCell(ABC):
@@ -82,7 +86,7 @@ class ShopCell(ABC):
         self.item_cost = copy(what.cost)
     
     def tick(self):
-        self.item_cost.money += COST_INCREASE_PER_TICK
+        self.item_cost.money += COST_INCREASE_PER_TICK * self.what.cost_increase_mult
     
     def __str__(self) -> str:
         return f'ShopCell({self.what} for {self.item_cost})'

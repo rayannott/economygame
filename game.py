@@ -52,7 +52,7 @@ class Game:
                 Label(f'time: {self.times_ticked} tx', self.surface, FONT_NORM, WHITE, topleft=(6, 28)),
                 Label(f'balance: {self.player.balance:.1f}', self.surface, FONT_NORM, WHITE, topleft=(6, 53)),
                 Label(f'[until victory: {tuv:.0f} tx]', self.surface, FONT_SMALL, WHITE, topleft=(15, 78)),
-                Label(f'{self.player.do_nothing_time_until_victory() - tuv:.0f}', self.surface, FONT_SMALL, WHITE, topleft=(200, 78)),
+                Label(f'{self.player.do_nothing_time_until_victory() - tuv:.0f}', self.surface, FONT_SMALL, WHITE, topleft=(220, 78)),
                 Label(f'mpt: {self.player.mpt:.3f}', self.surface, FONT_NORM, WHITE, topleft=(6, 103)),
                 Label(f'ppt: {self.player.ppt:.3f}', self.surface, FONT_NORM, WHITE, topleft=(6, 128)),
             ]
@@ -133,23 +133,38 @@ class Game:
                     )
                 )
                 self.next_empty_slot_index += 1
-        
         for inv_name, inv_slot in self.inventory_panel.gui_objects.items():
             inv_slot.set_text(f'{inv_name} x ({len(self.player.spent_on_each_shop_item[inv_name])})')
             dq = self.player.spent_on_each_shop_item[inv_name]
             extra = f'for {dq[0]*0.5:.1f}' if dq else '(currently unavailable)'
             inv_slot.hint_label.set_text(f'sell {inv_name} {extra}')
-        
         self.inventory_panel.update(current_mouse_pos)
 
         # effects:
+        for eff_idx, eff in enumerate(self.player.effects):
+            if str(eff_idx) in self.effects_panel.gui_objects:
+                if eff is None:
+                    del self.effects_panel.gui_objects[str(eff_idx)]
+                else: # updating the progressbar
+                    self.effects_panel.gui_objects[str(eff_idx)].set_progress(eff.duration/eff.DURATION)  # type: ignore
+                    self.effects_panel.gui_objects[str(eff_idx)].set_text(f'{eff.name} ({eff.duration})')  # type: ignore
+            else:
+                if eff is None:
+                    continue
+                self.effects_panel.populate_one(
+                    str(eff_idx),
+                    ProgressBar(
+                        topleft=(15, (INV_BTN_SLOT_SIZE[1] + 3) * (eff_idx + 1)),
+                        size=INV_BTN_SLOT_SIZE,
+                        surface=self.surface,
+                        progress=1.,
+                        text=f'{eff.name} ()',
+                        hoverhint='effect',
+                        display_progress=False,
+                        parent=self.effects_panel
+                    )
+                )
         self.effects_panel.update(current_mouse_pos)
-        # TODO: place effects
-        # for effect_item in self.player.effects:
-        #     self.effects_panel.populate_one(
-        #         effect_item.name,
-
-        #     )
 
         # notifications:
         for notif in self.notifications:
@@ -158,7 +173,7 @@ class Game:
     def spawn_notification(self, text: str, mouse_pos: tuple[int, int], duration: int = 6):
         self.notifications.append(Notification(text, self.surface, current_mouse_pos=mouse_pos))
     
-    def buy_shop_cell(self, shop_cell: ShopCell) -> bool:
+    def buy_shop_cell(self, shop_cell: ShopCell) -> tuple[bool, str]:
         '''Buys an item; returns True if success, else False'''
         return self.player.buy_shop_cell(shop_cell)
     
@@ -193,6 +208,7 @@ class Game:
                             print('inv:', self.player.inventory)
                             print('effects:', self.player.effects)
                             print('inv spending history:', self.player.spent_on_each_shop_item)
+                            print('effect flags:', self.player.effect_flags)
                             print('effect duration boost:', self.player.effect_duration_boost)
                             self.spawn_notification('debug', pos)
 
@@ -201,12 +217,12 @@ class Game:
                         if what_clicked:
                             what_clicked_2 = self.shop_panel.gui_objects[what_clicked].object_clicked() # type: ignore
                             if what_clicked_2 == 'buy':
-                                feedback = self.buy_shop_cell(self.shop[what_clicked])
-                                if feedback:
+                                success, message = self.buy_shop_cell(self.shop[what_clicked])
+                                if success:
                                     print(f'bought {what_clicked}: {self.shop[what_clicked]}')
                                 else:
-                                    print('not enough money')
-                                    self.spawn_notification(f'not enough money', pos, 1)
+                                    print(message.replace('\n', ' '))
+                                    self.spawn_notification(message, pos, 1)
 
                     elif self.inventory_panel.clicked():
                         what_clicked = self.inventory_panel.object_clicked()

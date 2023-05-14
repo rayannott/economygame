@@ -25,7 +25,7 @@ def create_panels_from_shop(shop: Shop, surface: pygame.Surface, shop_panel: Pan
         )
         for i, info in enumerate(sh_item.what.info, 1):
             pnl.add_labels(
-                [Label(info, surface, FONT_SMALL, WHITE, topleft=(15, 30*i))]
+                [Label(info, surface, FONT_SMALL, WHITE, topleft=(15, 10 + 24*i))]
             )
         pnl.populate_one(
             'buy',
