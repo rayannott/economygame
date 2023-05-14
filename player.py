@@ -1,6 +1,6 @@
 from collections import defaultdict, deque
 import math
-from base_objects import Cost, ShopCell, ShopItem, ShopItemType
+from base_objects import Cost, Effect, ShopCell, ShopItem, ShopItemType
 from shop_items import Bakery, SouvenirShop
 
 from utils import INITIAL_BALANCE, INITIAL_MPT, INITIAL_PPT, GOAL_BALANCE
@@ -13,6 +13,8 @@ class Player:
         self.ppt = INITIAL_PPT
         self.effect_duration_boost = 0
         self.inventory: list[ShopItem] = []
+        self.effects: list[Effect] = []
+        # holds a history of spendings to enable selling: 
         self.spent_on_each_shop_item: dict[str, deque[float]] = defaultdict(deque)
         self.INITIAL_TIME_UNTIL_VICTORY = self.time_until_victory()
         self.do_nothing_balance = INITIAL_BALANCE
@@ -43,10 +45,13 @@ class Player:
         '''Buys an item; returns True if success, else False'''
         is_possible_to_buy, resulting_balance = self.enough_money(shop_cell.item_cost)
         if is_possible_to_buy:
-            self.inventory.append(shop_cell.what)
             spent = self.balance - resulting_balance
+            if shop_cell.what.type_ == ShopItemType.EFFECT:
+                self.effects.append(shop_cell.what) # type: ignore
+            else:
+                self.inventory.append(shop_cell.what)
+                self.spent_on_each_shop_item[shop_cell.what.name].append(spent)
             self.set_balance(resulting_balance)
-            self.spent_on_each_shop_item[shop_cell.what.name].append(spent)
             shop_cell.item_cost = Cost(money=shop_cell.item_cost.money*1.1, balance_portion=shop_cell.item_cost.balance_portion + 0.01)
             return True
         return False

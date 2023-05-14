@@ -33,7 +33,7 @@ class SouvenirShop(ProfitGen):
 
 class BoostPpt(Effect):
     def __init__(self) -> None:
-        super().__init__(name='Boost PPT', cost=Cost(900., 0.1), type_=ShopItemType.EFFECT, duration=30)
+        super().__init__(name='Boost PPT', cost=Cost(100., 0.1), type_=ShopItemType.EFFECT, duration=30) # TODO: change cost
         self.info = ['2x(ppt) -> 1x(ppt)', f'in {self.duration} sec']
 
 

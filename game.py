@@ -3,11 +3,11 @@
 from collections import Counter
 import time
 import pygame
-from base_objects import Cost, ShopCell
+from base_objects import Cost, ShopCell, ShopItemType
 
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
-from gui.pygame_utils import BLACK, FONT_NORM, FRAMERATE, GREEN, RED, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE
+from gui.pygame_utils import BLACK, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE
 from gui.gui_shop import create_panels_from_shop
 import shop_items as si
 from shop_items import create_shop
@@ -44,7 +44,7 @@ class Game:
         # setup GUIs
         self.notifications: list[Notification] = []
 
-        self.info_panel = Panel((3, 3), (300, 240), self.surface, 'info')
+        self.info_panel = Panel((3, 3), INFO_PANEL_SIZE, self.surface, 'info')
         tuv = self.player.time_until_victory()
         self.info_panel.add_labels(
             [
@@ -66,19 +66,22 @@ class Game:
             Button((150, 200), (24, 24), self.surface, 'd', 'debug button', parent=self.info_panel)
         )
 
-        self.inventory_panel = Panel((3, 246), (300, WINDOW_SIZE[1] - 268), self.surface, 'inv')
+        self.inventory_panel = Panel((3, INFO_PANEL_SIZE[1] + 6), INVENTORY_PANEL_SIZE, self.surface, 'inv')
         self.inventory_panel.add_labels([
             Label('Inventory', self.surface, FONT_NORM, CP0[1], topleft=(45, 3))
         ])
         self.next_empty_slot_index = 0
 
+        self.effects_panel = Panel((3, INFO_PANEL_SIZE[1] + INVENTORY_PANEL_SIZE[1] + 9), EFFECTS_PANEL_SIZE, self.surface, 'effects')
+        self.effects_panel.add_labels(
+            [Label('Effects', self.surface, FONT_NORM, CP0[1], topleft=(45, 3))]
+        )
+        self.effect_slots = [False, False, False] # three empty slots
 
-        self.shop_panel = Panel((306, 3), (WINDOW_SIZE[0] - 310, WINDOW_SIZE[1] - 25), self.surface, 'market')
-
+        self.shop_panel = Panel((INFO_PANEL_SIZE[0] + 6, 3), SHOP_PANEL_SIZE, self.surface, 'market')
         self.shop_panel.add_labels(
             [Label('Market', self.surface, FONT_NORM, CP0[1], topleft=(45, 3))]
         )
-
         self.shop_panel.populate_many(
             create_panels_from_shop(self.shop, self.surface, self.shop_panel) # type: ignore
         )
@@ -139,6 +142,16 @@ class Game:
         
         self.inventory_panel.update(current_mouse_pos)
 
+        # effects:
+        self.effects_panel.update(current_mouse_pos)
+        # TODO: place effects
+        # for effect_item in self.player.effects:
+        #     self.effects_panel.populate_one(
+        #         effect_item.name,
+
+        #     )
+
+        # notifications:
         for notif in self.notifications:
             notif.update(current_mouse_pos)
 
@@ -178,6 +191,7 @@ class Game:
                         elif self.info_panel.gui_objects['debug_btn'].clicked():
                             # DEBUG
                             print('inv:', self.player.inventory)
+                            print('effects:', self.player.effects)
                             print('inv spending history:', self.player.spent_on_each_shop_item)
                             print('effect duration boost:', self.player.effect_duration_boost)
                             self.spawn_notification('debug', pos)
