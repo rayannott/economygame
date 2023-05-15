@@ -29,7 +29,7 @@ def create_panels_from_shop(shop: Shop, surface: pygame.Surface, shop_panel: Pan
             'buy',
             Button(
                 (SHOP_ITEM_PANEL_SIZE[0] - BUY_BTN_SIZE[0] - 4, SHOP_ITEM_PANEL_SIZE[1] - BUY_BTN_SIZE[1] - 4), 
-                BUY_BTN_SIZE, surface, str(sh_item.item_cost), f'buy {sh_item.what.name}', text_font=FONT_SMALL, parent=pnl
+                BUY_BTN_SIZE, surface, str(sh_item.item_cost), 'buy for _', text_font=FONT_SMALL, parent=pnl
             )
         )
         to_ret[sh_item.what.name] = pnl

@@ -95,7 +95,7 @@ class Game:
         self.player.update()
         if self.player.balance >= GOAL_BALANCE and not self.victory:
             self.victory = True
-            self.spawn_notification(f'You won @ \n {self.times_ticked} tx ---', (WINDOW_SIZE[0]//2, WINDOW_SIZE[1]//2))
+            self.spawn_notification(f'You won @ \n {self.times_ticked} tx', (WINDOW_SIZE[0]//2, WINDOW_SIZE[1]//2))
             
     
     def update_gui(self, current_mouse_pos: tuple[int, int]):
@@ -107,7 +107,6 @@ class Game:
         winning_by = self.player.do_nothing_time_until_victory() - tuv
         self.info_panel.labels[4].set_text(f'{winning_by:.0f}')
         self.info_panel.labels[4].set_color(GREEN if winning_by >= 0 else RED)
-        under_effects = any(self.player.effects)
         self.info_panel.labels[5].set_text(f'mpt: {self.player.mpt:.2f} (real {self.player.real_mpt:.2f})')
         self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.2f} (real {self.player.real_ppt:.2f})')
 
@@ -116,9 +115,12 @@ class Game:
         # shop panel:
         for key, shop_panel_item in self.shop_panel.gui_objects.items():
             item_cost = self.shop[key].item_cost
-            shop_panel_item.gui_objects['buy'].text_label.set_text(str(item_cost)) # type: ignore
-            frame_color = WHITE if self.player.enough_money(item_cost)[0] else RED
+            shop_panel_item.gui_objects['buy'].set_text(str(item_cost)) # type: ignore
+            can_buy, res_balance = self.player.enough_money(item_cost)
+            frame_color = WHITE if can_buy else RED
             shop_panel_item.gui_objects['buy'].set_frame_color(frame_color) # type: ignore
+            hoverhint_text = f'buy for {self.player.balance - res_balance:.0f}' if can_buy else f'cannot buy: need at least {item_cost.money / (1-item_cost.balance_portion):.0f}'
+            shop_panel_item.gui_objects['buy'].hint_label.set_text(hoverhint_text) # type: ignore
         
         self.shop_panel.update(current_mouse_pos)
 
@@ -140,7 +142,7 @@ class Game:
         for inv_name, inv_slot in self.inventory_panel.gui_objects.items():
             inv_slot.set_text(f'{inv_name} x ({len(self.player.spent_on_each_shop_item[inv_name])})')
             dq = self.player.spent_on_each_shop_item[inv_name]
-            extra = f'for {dq[0]*0.5:.1f}' if dq else '(currently unavailable)'
+            extra = f'for {dq[0]:.1f}' if dq else '(currently unavailable)'
             inv_slot.hint_label.set_text(f'sell {inv_name} {extra}')
         self.inventory_panel.update(current_mouse_pos)
 

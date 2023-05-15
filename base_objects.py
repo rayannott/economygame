@@ -21,7 +21,7 @@ class Cost:
     balance_portion: float = 0.0
 
     def __str__(self) -> str:
-        return f'{int(self.money)} + {self.balance_portion:.0%}'
+        return f'{int(self.money)}, {self.balance_portion:.0%}'
 
 
 class ShopItem(ABC):
@@ -89,7 +89,7 @@ class ShopCell(ABC):
     
     def tick(self):
         new_val = self.item_cost.money + COST_INCREASE_PER_TICK * self.what.cost_increase_mult
-        if new_val >= 30:
+        if new_val >= 50:
             self.item_cost.money = new_val
     
     def __str__(self) -> str:

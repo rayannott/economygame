@@ -13,9 +13,8 @@ class IronNugget(ProfitGen):
 class CopperNugget(ProfitGen):
     def __init__(self) -> None:
         super().__init__(name='Copper Nugget', cost=Cost(400., 0.), type_=ShopItemType.AMULET, mpt=0., ppt=0.06)
-        self.info = [f'+{self.ppt} ppt', '(cost dec 5x)', '(each purchase -10%)']
+        self.info = [f'+{self.ppt} ppt', '(cost dec 5x)']
         self.cost_increase_mult = -5
-        self.per_purchase_cost_mult = 0.9
         self.per_purchase_portion_increase = 0
 
 
@@ -34,8 +33,10 @@ class Bakery(ProfitGen):
 
 class SouvenirShop(ProfitGen):
     def __init__(self) -> None:
-        super().__init__(name='Souvenir Shop', cost=Cost(400., 0.01), type_=ShopItemType.BUSINESS, mpt=0., ppt=0.)
-        self.info = [f'+{self.ppt} ppt']
+        super().__init__(name='Souvenir Shop', cost=Cost(50., 0.3), type_=ShopItemType.BUSINESS, mpt=0.4, ppt=-0.01)
+        self.info = [f'{self.ppt} ppt', f'+{self.mpt} mpt']
+        self.per_purchase_cost_mult = 1.1
+        self.per_purchase_portion_increase = 0
 
 
 class JewelleryStore(ProfitGen):
@@ -74,9 +75,8 @@ class EvilWizardry(Effect):
     
 class AllIn(Effect):
     def __init__(self) -> None:
-        super().__init__(name='All In', cost=Cost(5., 0.85), type_=ShopItemType.EFFECT, duration=10)
-        self.info = ['40 x (ppt)', f'for {self.duration} sec', '(cost inc 0x)']
-        self.cost_increase_mult = 0
+        super().__init__(name='All In', cost=Cost(20., 0.8), type_=ShopItemType.EFFECT, duration=10)
+        self.info = ['30 x (ppt)', f'for {self.duration} sec', 'overrides [Boost PPT]']
 
 
 def create_shop() -> Shop:
