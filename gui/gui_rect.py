@@ -194,10 +194,10 @@ class Panel(GUIRect):
 
 
 class Notification(Panel):
-    def __init__(self, text: str, surface: pygame.Surface, pos: tuple[int, int], duration_tics=6) -> None:
+    def __init__(self, text: str, surface: pygame.Surface, pos: tuple[int, int], duration_tics=5) -> None:
         self.lines = text.split('\n')
         max_len = len(max(self.lines, key=len))
-        super().__init__(topleft=pos, size=(12 * max_len, 30 * len(self.lines)), surface=surface, hoverhint='', parent=None)
+        super().__init__(topleft=pos, size=(13 * max_len, 30 * len(self.lines)), surface=surface, hoverhint='', parent=None)
         self.duration_ticks = duration_tics
         self.color_frame = CP0[0]
         self.inner_rect = pygame.rect.Rect(shift(self.rect.topleft, (3, 3)), shift(self.rect.size, (-6, -6)))

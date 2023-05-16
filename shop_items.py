@@ -60,8 +60,10 @@ class BoostPpt(Effect):
 class BoostMpt(Effect):
     def __init__(self) -> None:
         super().__init__(name='Boost MPT', cost=Cost(20., 0.2), type_=ShopItemType.EFFECT, duration=15)
-        self.info = ['5 x (mpt)', f'for {self.duration} sec', '(cost inc 3x)', '(each purchase +50%)']
+        self.info = ['5 x (mpt)', f'for {self.duration} sec', '(cost inc 3x)']
         self.cost_increase_mult = 3
+        self.per_purchase_cost_mult = 1.5
+        self.per_purchase_portion_increase = 0.03
 
 
 class MegaStocks(Effect):

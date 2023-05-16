@@ -115,6 +115,7 @@ class Player:
                     if eff is None: none_index = i; break
                 self.effects[none_index] = deepcopy(shop_cell.what) # type: ignore
                 self.effects[none_index].duration += self.effect_duration_boost # type: ignore
+                self.effects[none_index].DURATION += self.effect_duration_boost # type: ignore
             else:
                 self.inventory.append(shop_cell.what)
                 self.spent_on_each_shop_item[shop_cell.what.name].append(spent)
@@ -179,5 +180,10 @@ class Player:
                 self.extra_mpt[1] += inv_item.mpt # type: ignore
                 self.extra_ppt[1] += inv_item.ppt # type: ignore
 
-        self.mpt = INITIAL_MPT + sum(self.extra_mpt) * (1 + 0.04 * souvenir_shops)
-        self.ppt = INITIAL_PPT + sum(self.extra_ppt) * (1 + 0.04 * souvenir_shops)
+        souv_mult = (1 + 0.04 * souvenir_shops)
+
+        self.extra_mpt = [self.extra_mpt[0] * souv_mult, self.extra_mpt[1] * souv_mult]
+        self.extra_ppt = [self.extra_ppt[0] * souv_mult, self.extra_ppt[1] * souv_mult]
+
+        self.mpt = INITIAL_MPT + sum(self.extra_mpt)
+        self.ppt = INITIAL_PPT + sum(self.extra_ppt)
