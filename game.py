@@ -6,11 +6,11 @@ import pygame
 from base_objects import Cost, ShopCell, ShopItemType
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
-from gui.gui_utils import BLACK, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE, random_point
+from gui.gui_utils import BLACK, CP1, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE, random_point
 from gui.gui_shop import create_panels_from_shop
 import shop_items as si
 from shop_items import create_shop
-from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, TICK
+from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, SELL_ITEM_ORIGINAL_PRICE_PORTION, TICK
 
 
 class Game:
@@ -96,6 +96,10 @@ class Game:
         if self.player.balance >= GOAL_BALANCE and not self.victory:
             self.victory = True
             self.spawn_notification(f'You won @ \n {self.times_ticked} tx', (WINDOW_SIZE[0]//2, WINDOW_SIZE[1]//2))
+            print(f'won @ {self.times_ticked} tx')
+            self.info_panel.add_labels(
+                [Label(f'won @ {self.times_ticked} tx', self.surface, FONT_NORM, CP0[0], topleft=(6, 153))]
+            )
             
     
     def update_gui(self, current_mouse_pos: tuple[int, int]):
@@ -142,7 +146,7 @@ class Game:
         for inv_name, inv_slot in self.inventory_panel.gui_objects.items():
             inv_slot.set_text(f'{inv_name} x ({len(self.player.spent_on_each_shop_item[inv_name])})')
             dq = self.player.spent_on_each_shop_item[inv_name]
-            extra = f'for {dq[0]:.1f}' if dq else '(currently unavailable)'
+            extra = f'for {dq[0] * SELL_ITEM_ORIGINAL_PRICE_PORTION:.1f}' if dq else '(currently unavailable)'
             inv_slot.hint_label.set_text(f'sell {inv_name} {extra}')
         self.inventory_panel.update(current_mouse_pos)
 
@@ -177,7 +181,7 @@ class Game:
             notif.update(current_mouse_pos)
 
     def spawn_notification(self, text: str, pos: tuple[int, int], duration: int = 6):
-        self.notifications.append(Notification(text, self.surface, pos=pos))
+        self.notifications.append(Notification(text, self.surface, pos=pos, duration_tics=duration))
     
     def buy_shop_cell(self, shop_cell: ShopCell) -> tuple[bool, str]:
         '''Buys an item; returns True if success, else False'''
@@ -208,6 +212,8 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.info_panel.clicked():
                         if self.info_panel.gui_objects['pause_btn'].clicked():
+                            if not self.paused:
+                                self.spawn_notification('paused', pos, duration=1)
                             self.paused = not self.paused
                         elif self.info_panel.gui_objects['debug_btn'].clicked():
                             # DEBUG
@@ -225,7 +231,7 @@ class Game:
                             if what_clicked_2 == 'buy':
                                 success, message = self.buy_shop_cell(self.shop[what_clicked])
                                 if success:
-                                    print(f'bought {what_clicked}: {self.shop[what_clicked]}')
+                                    print(f'bought {self.shop[what_clicked]} @ {self.times_ticked} tx')
                                 else:
                                     print(message.replace('\n', ' '))
                                     self.spawn_notification(message, pos, 1)

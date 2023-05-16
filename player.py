@@ -5,7 +5,7 @@ import math
 
 from base_objects import Cost, Effect, ShopCell, ShopItem, ShopItemType
 from shop_items import Bakery, JewelleryStore, SouvenirShop, BoostPpt
-from utils import INITIAL_BALANCE, INITIAL_MPT, INITIAL_PPT, GOAL_BALANCE, AVAILABLE_EFFECTS_SLOTS, BONUS_AMOUNT, BONUS_EVERY, PER_BAKERY_EFFECT_BOOST
+from utils import INITIAL_BALANCE, INITIAL_MPT, INITIAL_PPT, GOAL_BALANCE, AVAILABLE_EFFECTS_SLOTS, BONUS_AMOUNT, BONUS_EVERY, PER_BAKERY_EFFECT_BOOST, SELL_ITEM_ORIGINAL_PRICE_PORTION
 
 @dataclass
 class EffectFlags:
@@ -51,11 +51,14 @@ class Player:
                 self.effect_flags.allin = True
 
         # update balance:
-        stocks_mult = 2.5 if self.effect_flags.mega_stocks else 1
-        evilwizardry = 2.5 if self.effect_flags.evilwizardry else 1
-        boost_ppt_mult = 3 if self.effect_flags.boost_ppt else 1
-        boost_ppt_mult = 40 if self.effect_flags.allin else 1
-        boost_mpt_mult = 3 if self.effect_flags.boost_mpt else 1
+        stocks_mult = 5 if self.effect_flags.mega_stocks else 1
+        evilwizardry = 5 if self.effect_flags.evilwizardry else 1
+        boost_ppt_mult = 1 
+        if self.effect_flags.boost_ppt:
+            boost_ppt_mult = 5
+        elif self.effect_flags.allin:
+            boost_ppt_mult = 30
+        boost_mpt_mult = 5 if self.effect_flags.boost_mpt else 1
         
         self.real_ppt = (INITIAL_PPT + self.extra_ppt[0] * evilwizardry + self.extra_ppt[1] * stocks_mult) * boost_ppt_mult
         self.real_mpt = (INITIAL_MPT + self.extra_mpt[0] * evilwizardry + self.extra_mpt[1] * stocks_mult) * boost_mpt_mult
@@ -140,7 +143,7 @@ class Player:
         assert index_to_pop is not None
         self.inventory.pop(index_to_pop)
         spent = self.spent_on_each_shop_item[item_name].popleft()
-        self.set_balance(self.balance + spent)
+        self.set_balance(self.balance + spent * SELL_ITEM_ORIGINAL_PRICE_PORTION)
         return True
 
     def set_balance(self, set_to: float):
@@ -152,6 +155,7 @@ class Player:
             if inv_item.type_ == ShopItemType.AMULET:
                 amulets += 1
 
+        souvenir_shops = 0
 
         self.extra_mpt = [0., 0.]
         self.extra_ppt = [0., 0.]
@@ -165,12 +169,15 @@ class Player:
                 pass
             elif inv_item.type_ == ShopItemType.BUSINESS:
                 if isinstance(inv_item, JewelleryStore):
+                    self.extra_ppt[1] += inv_item.ppt * amulets
                     self.extra_mpt[1] += inv_item.mpt * amulets
                     continue
                 elif isinstance(inv_item, Bakery):
                     self.effect_duration_boost += PER_BAKERY_EFFECT_BOOST
+                elif isinstance(inv_item, SouvenirShop):
+                    souvenir_shops += 1
                 self.extra_mpt[1] += inv_item.mpt # type: ignore
                 self.extra_ppt[1] += inv_item.ppt # type: ignore
 
-        self.mpt = INITIAL_MPT + sum(self.extra_mpt)
-        self.ppt = INITIAL_PPT + sum(self.extra_ppt)
+        self.mpt = INITIAL_MPT + sum(self.extra_mpt) * (1 + 0.04 * souvenir_shops)
+        self.ppt = INITIAL_PPT + sum(self.extra_ppt) * (1 + 0.04 * souvenir_shops)
