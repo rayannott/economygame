@@ -100,6 +100,8 @@ class Game:
             self.info_panel.add_labels(
                 [Label(f'won @ {self.times_ticked} tx', self.surface, FONT_NORM, CP0[0], topleft=(6, 153))]
             )
+            self.info_panel.labels[3].deactivate()
+            self.info_panel.labels[4].deactivate()
             
     
     def update_gui(self, current_mouse_pos: tuple[int, int]):
