@@ -16,10 +16,15 @@ class Label:
 
         self.text_surface = self.font.render(self.text, True, self.color)
         self.rect = self.text_surface.get_rect(**kwargs)
+        self.active = True
 
     def update(self):
-        self.text_surface = self.font.render(self.text, True, self.color)
-        self.draw()
+        if self.active:
+            self.text_surface = self.font.render(self.text, True, self.color)
+            self.draw()
+
+    def deactivate(self):
+        self.active = False
 
     def draw(self):
         self.surface.blit(self.text_surface, self.rect)
