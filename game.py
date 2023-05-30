@@ -11,6 +11,7 @@ from gui.gui_shop import create_panels_from_shop
 import shop_items as si
 from shop_items import create_shop
 from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, SELL_ITEM_ORIGINAL_PRICE_PORTION, TICK
+from sfx_tools import play_sfx
 
 
 class Game:
@@ -100,8 +101,8 @@ class Game:
             self.info_panel.add_labels(
                 [Label(f'won @ {self.times_ticked} tx', self.surface, FONT_NORM, CP0[0], topleft=(6, 153))]
             )
+            play_sfx('victory')
             
-    
     def update_gui(self, current_mouse_pos: tuple[int, int]):
         # info panel:
         self.info_panel.labels[1].set_text(f'time: {self.times_ticked} tx')
@@ -209,11 +210,15 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    play_sfx('click')
                     if self.info_panel.clicked():
                         if self.info_panel.gui_objects['pause_btn'].clicked():
                             if not self.paused:
                                 self.spawn_notification('paused', pos, duration=1)
+                                play_sfx('pause_on')
+                            else:
+                                play_sfx('pause_off')
                             self.paused = not self.paused
                         elif self.info_panel.gui_objects['debug_btn'].clicked():
                             # DEBUG
@@ -223,7 +228,6 @@ class Game:
                             print('DEB - effect flags:', self.player.effect_flags)
                             print('DEB - real mpt, ppt:', self.player.real_mpt, self.player.real_ppt)
                             print('DEB - effect duration boost:', self.player.effect_duration_boost)
-
                     elif self.shop_panel.clicked():
                         what_clicked = self.shop_panel.object_clicked()
                         if what_clicked:
@@ -232,19 +236,22 @@ class Game:
                                 success, message = self.buy_shop_cell(self.shop[what_clicked])
                                 if success:
                                     print(f'bought {self.shop[what_clicked]} @ {self.times_ticked} tx')
+                                    play_sfx('success')
                                 else:
                                     print(message.replace('\n', ' '))
                                     self.spawn_notification(message, pos, 1)
-
+                                    play_sfx('warning')
                     elif self.inventory_panel.clicked():
                         what_clicked = self.inventory_panel.object_clicked()
                         if what_clicked:
                             feedback = self.sell_item(what_clicked)
                             if feedback:
                                 print(f'sold {what_clicked}')
+                                play_sfx('success')
                             else:
                                 print(f'you don\'t have {what_clicked}')
                                 self.spawn_notification(f'no {what_clicked} left', pos, 3)
+                                play_sfx('warning')
             pygame.display.update()
 
     def tick(self):
@@ -257,5 +264,6 @@ class Game:
         if self.times_ticked % BONUS_EVERY == 0:
             self.player.set_balance(self.player.balance + BONUS_AMOUNT)
             self.spawn_notification(f'you received a bonus: {BONUS_AMOUNT}', random_point())
+            play_sfx('bonus_received')
         for notif in self.notifications:
             notif.tick()
