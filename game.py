@@ -6,7 +6,7 @@ import pygame
 from pygame.gfxdraw import filled_polygon
 
 from base_objects import Cost, ShopCell, ShopItemType
-from gui.gui_circle import DummyCircle
+from gui.gui_circle import DummyCircle, ProgressCircle
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
 from gui.gui_utils import BLACK, CP1, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE, random_point
@@ -14,7 +14,7 @@ from gui.gui_shop import create_panels_from_shop
 import shop_items as si
 from shop_items import create_shop
 from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, SELL_ITEM_ORIGINAL_PRICE_PORTION, TICK
-from sfx_tools import play_sfx
+from sfx_tools import play_sfx, DEFAULT_SFX_VOLUME, set_sfx_volume
 
 
 def fill_arc(screen, center, radius, theta0, theta1, color, ndiv=50):
@@ -76,6 +76,10 @@ class Game:
             'debug_btn',
             Button((150, 200), (24, 24), self.surface, 'd', 'debug button', parent=self.info_panel)
         )
+        self.info_panel.populate_one(
+            'volume',
+            ProgressCircle((256, 40), 25, self.surface, progress=0.3, text='', hoverhint='change volume', parent=self.info_panel)
+        )
 
         self.inventory_panel = Panel((3, INFO_PANEL_SIZE[1] + 6), INVENTORY_PANEL_SIZE, self.surface, 'inv')
         self.inventory_panel.add_labels([
@@ -96,8 +100,6 @@ class Game:
         self.shop_panel.populate_many(
             create_panels_from_shop(self.shop, self.surface, self.shop_panel) # type: ignore
         )
-
-        self.dummy_circle = DummyCircle((256, 40), 25, self.surface, 'ok hello')
 
     def update(self):
         '''Updates the brains of the game (back)'''
@@ -129,8 +131,6 @@ class Game:
         self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.2f} (real {self.player.real_ppt:.2f})')
 
         self.info_panel.update(current_mouse_pos)
-
-        self.dummy_circle.update(current_mouse_pos)
 
         # shop panel:
         for key, shop_panel_item in self.shop_panel.gui_objects.items():
@@ -225,7 +225,14 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button in {4, 5}:
+                        play_sfx('scroll_short_click')
+                        if self.info_panel.gui_objects['volume'].clicked():
+                            delta = 0.05 if pygame.key.get_mods() & pygame.KMOD_LCTRL else 0.01
+                            self.info_panel.gui_objects['volume'].change_progress(delta if event.button == 4 else -delta) # type: ignore
+                            set_sfx_volume(self.info_panel.gui_objects['volume'].progress) # type: ignore
+                        continue
                     play_sfx('click')
                     if self.info_panel.clicked():
                         if self.info_panel.gui_objects['pause_btn'].clicked():
@@ -243,6 +250,9 @@ class Game:
                             print('DEB - effect flags:', self.player.effect_flags)
                             print('DEB - real mpt, ppt:', self.player.real_mpt, self.player.real_ppt)
                             print('DEB - effect duration boost:', self.player.effect_duration_boost)
+                        elif self.info_panel.gui_objects['volume'].clicked():
+                            print(f'volume reset to {DEFAULT_SFX_VOLUME}')
+                            self.info_panel.gui_objects['volume'].set_progress(DEFAULT_SFX_VOLUME) # type: ignore
                     elif self.shop_panel.clicked():
                         what_clicked = self.shop_panel.object_clicked()
                         if what_clicked:
