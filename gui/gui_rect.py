@@ -1,3 +1,6 @@
+'''
+All rectangular gui objects
+'''
 from abc import ABC, abstractmethod
 from typing import Union
 
@@ -57,7 +60,6 @@ class GUIRect(ABC):
         self.visible = True
         self.active = True
         self.hovering = False # boolean flag updated every frame
-        self.clickable = False
         self.depth = 1 if parent else 0
         self.color_text = WHITE
         self.color_hint = WHITE
@@ -102,7 +104,6 @@ class Button(GUIRect):
     def __init__(self, topleft: tuple[float, float], size: tuple[float, float], surface: pygame.Surface, 
                  text: str = '', hoverhint: str = '', text_font = FONT_NORM, parent = None) -> None:
         super().__init__(topleft, size, surface, text, hoverhint, text_font, parent)
-        self.clickable = True
     
     def update(self, current_mouse_pos: tuple[int, int]):
         return super().update(current_mouse_pos)

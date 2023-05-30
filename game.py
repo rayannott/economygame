@@ -1,9 +1,12 @@
 from collections import Counter
 import time
+import math
 
 import pygame
+from pygame.gfxdraw import filled_polygon
 
 from base_objects import Cost, ShopCell, ShopItemType
+from gui.gui_circle import DummyCircle
 from player import Player
 from gui.gui_rect import Button, Label, Notification, ProgressBar, Panel
 from gui.gui_utils import BLACK, CP1, EFFECTS_PANEL_SIZE, FONT_NORM, FRAMERATE, GREEN, INFO_PANEL_SIZE, INVENTORY_PANEL_SIZE, RED, SHOP_PANEL_SIZE, WHITE, WINDOW_SIZE, FONT_HUGE, FONT_SMALL, CP0, INV_BTN_SLOT_SIZE, random_point
@@ -12,6 +15,14 @@ import shop_items as si
 from shop_items import create_shop
 from utils import BONUS_AMOUNT, BONUS_EVERY, GOAL_BALANCE, SELL_ITEM_ORIGINAL_PRICE_PORTION, TICK
 from sfx_tools import play_sfx
+
+
+def fill_arc(screen, center, radius, theta0, theta1, color, ndiv=50):
+    x0, y0 = center
+    dtheta = (theta1 - theta0) / ndiv
+    angles = [theta0 + i*dtheta for i in range(ndiv + 1)] 
+    points = [(x0, y0)] + [(x0 + radius * math.cos(theta), y0 - radius * math.sin(theta)) for theta in angles]
+    filled_polygon(screen, points, color)
 
 
 class Game:
@@ -86,6 +97,8 @@ class Game:
             create_panels_from_shop(self.shop, self.surface, self.shop_panel) # type: ignore
         )
 
+        self.dummy_circle = DummyCircle((256, 40), 25, self.surface, 'ok hello')
+
     def update(self):
         '''Updates the brains of the game (back)'''
         self.current_time = time.time()
@@ -116,6 +129,8 @@ class Game:
         self.info_panel.labels[6].set_text(f'ppt: {self.player.ppt:.2f} (real {self.player.real_ppt:.2f})')
 
         self.info_panel.update(current_mouse_pos)
+
+        self.dummy_circle.update(current_mouse_pos)
 
         # shop panel:
         for key, shop_panel_item in self.shop_panel.gui_objects.items():
