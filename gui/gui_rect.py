@@ -1,5 +1,8 @@
+'''
+All rectangular gui objects
+'''
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Any, Union
 
 import pygame
 
@@ -62,7 +65,6 @@ class GUIRect(ABC):
         self.visible = True
         self.active = True
         self.hovering = False # boolean flag updated every frame
-        self.clickable = False
         self.depth = 1 if parent else 0
         self.color_text = WHITE
         self.color_hint = WHITE
@@ -107,7 +109,6 @@ class Button(GUIRect):
     def __init__(self, topleft: tuple[float, float], size: tuple[float, float], surface: pygame.Surface, 
                  text: str = '', hoverhint: str = '', text_font = FONT_NORM, parent = None) -> None:
         super().__init__(topleft, size, surface, text, hoverhint, text_font, parent)
-        self.clickable = True
     
     def update(self, current_mouse_pos: tuple[int, int]):
         return super().update(current_mouse_pos)
@@ -121,7 +122,7 @@ class ProgressBar(GUIRect):
                 topleft: tuple[float, float], 
                 size: tuple[float, float], 
                 surface: pygame.Surface, 
-                progress: float = 0,
+                progress: float = 0.,
                 display_progress: bool = True,
                 text: str = '',
                 hoverhint: str = '',
@@ -162,10 +163,10 @@ class Panel(GUIRect):
     def __init__(self, topleft: tuple[float, float], size: tuple[float, float], 
                 surface: pygame.Surface, hoverhint: str = '', parent = None) -> None:
         super().__init__(topleft, size, surface, '', hoverhint, parent=parent)
-        self.gui_objects: dict[str, Union[Button, ProgressBar, Panel]] = {} # interactive objects like buttons
+        self.gui_objects: dict[str, Union[GUIRect, Any]] = {} # interactive objects like buttons
         self.labels: list[Label] = []
 
-    def populate_one(self, label: str, gui_object: Union[Button, ProgressBar, 'Panel']) -> None:
+    def populate_one(self, label: str, gui_object: Union[GUIRect, Any]) -> None:
         gui_object.depth += self.depth
         gui_object.hint_label.rect.centerx = gui_object.hint_label.rect.centerx + 150 * gui_object.depth
         self.gui_objects[label] = gui_object
